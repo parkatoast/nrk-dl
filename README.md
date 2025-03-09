@@ -35,7 +35,7 @@ Scriptet vil laste ned alle episodene av Fleksnes
 `.\nrk-dl.ps1 "fantorangen" -SeasonFilter 3`
 Scriptet vil laste ned alle episodene av Fantorangen i sesong 3
 
-`.\nrk-dl.ps1 "KOID20001420"`
+`.\nrk-dl.ps1 "FDRI40003290"`
 Scriptet vil laste ned programmet
 
 ### Alignment filer
