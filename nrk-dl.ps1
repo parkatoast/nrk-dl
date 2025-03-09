@@ -317,6 +317,7 @@ if ($DropSubtitles) {
 else {
     Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " ON " -NoNewline; Write-Host -Object "|"
 }
+
 Write-Host "Season Filter:         |" -NoNewline
 if ($SeasonFilter) {
     Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " Only downloading season $SeasonFilter " -NoNewline; Write-Host -Object "|"
@@ -378,6 +379,7 @@ if (-not (Test-Path -PathType "Container" -Path "downloads/$name")) {
         exit
     }
 }
+
 Set-Location -Path "downloads/$name"
 
 if ($type -eq "standalone") {
