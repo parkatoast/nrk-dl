@@ -211,8 +211,12 @@ if (-not (Test-Path -PathType "Container" -Path "downloads")) {
 
 $seasons = $null
 $standalone = $null
-$series_req = Invoke-RestMethod -Uri "https://psapi.nrk.no/tv/catalog/series/$name"
-$seasons = $series_req._links.seasons.name
+
+try {
+    $series_req = Invoke-RestMethod -Uri "https://psapi.nrk.no/tv/catalog/series/$name"
+    $seasons = $series_req._links.seasons.name
+} catch {
+}
 
 if ($Alignment_TheTVDB) {
     $alignment_file = "alignment-thetvdb-$name.json"
@@ -282,12 +286,12 @@ if ($seasons) {
     }
 }
 else {
-    $standalone_req = (Invoke-RestMethod -Uri "https://psapi.nrk.no/tv/catalog/programs/$name")
-    $standalone = $standalone_req._links.share.href
-    if ($standalone_req) {
+    try {
+        $standalone_req = Invoke-RestMethod -Uri "https://psapi.nrk.no/tv/catalog/programs/$name"
+        $standalone = $standalone_req._links.share.href
         $type = "standalone"
     }
-    else {
+    catch {
         Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " Could not find program/series " -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"
         exit
     }
