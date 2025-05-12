@@ -179,12 +179,37 @@ if ($IsMacOS -or $IsLinux) {
 else {
     if (-not (Test-Path -PathType "Leaf" -Path "ffmpeg.exe")) {
         $downloadaccept = $null
-        $downloadaccept = Read-Host -Prompt "ffmpeg.exe (required-package) is not installed, do you want us to download it? Source: https://cdn.serverhost.no/ljskatt/ffmpeg.exe (Y/n)`n"
+        $downloadaccept = Read-Host -Prompt "ffmpeg.exe (required-package) is not installed, do you want us to download it? Source: https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip (Y/n)`n"
         if ($downloadaccept -in '','y','yes') {
             Write-Output "Downloading ffmpeg"
-            Invoke-WebRequest -Uri "https://cdn.serverhost.no/ljskatt/ffmpeg.exe" -OutFile "ffmpeg.exe"
-            if (Test-Path -PathType "Leaf" -Path "ffmpeg.exe") {
-                Write-Host -Object "|" -NoNewline; Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " Success " -NoNewline; Write-Host -Object "|"; Write-Host ""
+            $tempZipPath = "ffmpeg-temp.zip"
+            Invoke-WebRequest -Uri "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip" -OutFile "$tempZipPath"
+            
+            if (Test-Path -PathType "Leaf" -Path "$tempZipPath") {
+                Expand-Archive -Path "$tempZipPath" -DestinationPath "." -Force
+                $extractedFolder = Get-ChildItem -Directory | Where-Object { $_.Name -like "ffmpeg-*-essentials_build" } | Select-Object -First 1
+                
+                if ($extractedFolder -and (Test-Path -PathType "Leaf" -Path "$($extractedFolder.FullName)\bin\ffmpeg.exe")) {
+                    Copy-Item -Path "$($extractedFolder.FullName)\bin\ffmpeg.exe" -Destination "." -Force
+                    Remove-Item -Path "$tempZipPath" -Force
+                    Remove-Item -Path $extractedFolder.FullName -Recurse -Force
+                    
+                    if (Test-Path -PathType "Leaf" -Path "ffmpeg.exe") {
+                        Write-Host -Object "|" -NoNewline; Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " Success " -NoNewline; Write-Host -Object "|"; Write-Host ""
+                    }
+                    else {
+                        Write-Host -Object "|" -NoNewline; Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " Failed " -NoNewline; Write-Host -Object "|"
+                        exit
+                    }
+                }
+                else {
+                    Remove-Item -Path "$tempZipPath" -Force
+                    if ($extractedFolder) {
+                        Remove-Item -Path $extractedFolder.FullName -Recurse -Force
+                    }
+                    Write-Host -Object "|" -NoNewline; Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " Failed " -NoNewline; Write-Host -Object "|"
+                    exit
+                }
             }
             else {
                 Write-Host -Object "|" -NoNewline; Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " Failed " -NoNewline; Write-Host -Object "|"
