@@ -16,7 +16,7 @@ param (
     $DropImages,
 
     [Parameter()]
-    [string]
+    [object]
     $SeasonFilter,
 
     [Parameter()]
@@ -59,6 +59,37 @@ function Format-Name {
     $output = $output -replace "/"
     $output = $output -replace '\\'
     return $output
+}
+
+function Parse-SeasonFilter {
+    param (
+        [Parameter()]
+        [object]
+        $Filter
+    )
+    if (-not $Filter) {
+        return $null
+    }
+    $seasons = @()
+    $filterString = if ($Filter -is [array]) { $Filter -join ',' } else { $Filter }
+    $filterParts = $filterString -split ','
+    foreach ($part in $filterParts) {
+        $trimmedPart = $part.Trim()
+        if ($trimmedPart -match '(\d+)\s*-\s*(\d+)') {
+            $start = [int]$matches[1]
+            $end = [int]$matches[2]
+            for ($i = $start; $i -le $end; $i++) {
+                $seasons += $i.ToString()
+            }
+        }
+        elseif ($trimmedPart -match '\d+') {
+            $seasons += $trimmedPart
+        }
+        else {
+            Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object " Invalid season filter format: $part " -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"
+        }
+    }
+    return ($seasons | Sort-Object { [int]$_ } -Unique)
 }
 
 function Get-Episodeinfo {
@@ -111,6 +142,7 @@ function Get-Episodeinfo {
 
 $ProgressPreference = 'SilentlyContinue'
 $root_location = Get-Location
+$seasonFilterArray = Parse-SeasonFilter -Filter $SeasonFilter
 
 Write-Output ""
 if ($IsWindows) {
@@ -348,8 +380,8 @@ else {
     Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " ON " -NoNewline; Write-Host -Object "|"
 }
 Write-Host "Season Filter:         |" -NoNewline
-if ($SeasonFilter) {
-    Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " Only downloading season $SeasonFilter " -NoNewline; Write-Host -Object "|"
+if ($seasonFilterArray) {
+    Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " Only downloading season $($seasonFilterArray -join ', ') " -NoNewline; Write-Host -Object "|"
 }
 else {
     Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " No Filter " -NoNewline; Write-Host -Object "|"
@@ -476,8 +508,8 @@ if ($type -eq "series") {
         }
     }
     foreach ($season in $seasons) {
-        if ($SeasonFilter) {
-            if (-not ($season -eq $SeasonFilter)) {
+        if ($seasonFilterArray) {
+            if (-not ($season -in $seasonFilterArray)) {
                 Write-Output "Skipping season $season"
                 continue
             } else {
