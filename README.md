@@ -20,7 +20,7 @@ Dette vil automatisk bli lastet ned når du kjører scriptet:
 
 Last ned filen og kjør kommandoen for å begynne å laste ned episoden/episoder, scriptet vil selv laste ned dependencies som den trenger.
 
-`.\nrk-dl.ps1 [-Name] <program> [-DropVideo] [-DropSubtitles] [-DropImages] [-SeasonFilter <season>] [-LegacyFormatting] [-IncludeExtras] [-IncludeDescriptions] [-DisableSSLCertVerify] [-Debugging] [-Alignment_TheTVDB]`
+`.\nrk-dl.ps1 [-Name] <program> [-DropVideo] [-DropSubtitles] [-DropImages] [-SeasonFilter <season>] [-LegacyFormatting] [-IncludeExtras] [-IncludeDescriptions] [-DisableSSLCertVerify] [-Debugging]`
 
 ### Eksempel
 
@@ -46,11 +46,6 @@ Scriptet vil laste ned alle episodene av Fantorangen i sesong 3, 4 og 5
 
 `.\nrk-dl.ps1 "fantorangen" -SeasonFilter 3-5,7`
 Scriptet vil laste ned alle episodene av Fantorangen i sesong 3, 4, 5 og 7
-
-### Alignment filer
-
-- [x] Poirot - [Issue](https://github.com/ljskatt/nrk-dl/issues/5)
-- [ ] Vera - [Issue](https://github.com/ljskatt/nrk-dl/issues/4)
 
 ## Linux
 :warning: &nbsp; Dette scriptet fungerer ikke lenger, dette blir oppdatert fortløpende, men PowerShell (Windows) er prioritert først :warning:

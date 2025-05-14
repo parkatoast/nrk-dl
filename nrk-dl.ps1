@@ -38,10 +38,6 @@ param (
     [Parameter()]
     [switch]
     $Debugging,
-
-    [Parameter()]
-    [switch]
-    $Alignment_TheTVDB
 )
 
 function Format-Name {
@@ -272,17 +268,6 @@ $standalone = $null
 try {
     $series_req = Invoke-RestMethod -Uri "https://psapi.nrk.no/tv/catalog/series/$name"
     $seasons = $series_req._links.seasons.name
-
-    if ($Alignment_TheTVDB) {
-        $alignment_file = "alignment-thetvdb-$name.json"
-        if (Test-Path -Path $alignment_file) {
-            $alignment = Get-Content -Path $alignment_file | ConvertFrom-Json
-        }
-        else {
-            Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " Alignmentfile ($alignment_file) does not exist " -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"
-            exit
-        }
-    }
 }
 catch {
     try {
@@ -405,14 +390,6 @@ else {
 
 Write-Host "Include Descriptions:  |" -NoNewline
 if ($IncludeDescriptions) {
-    Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " ON " -NoNewline; Write-Host -Object "|"
-}
-else {
-    Write-Host -BackgroundColor "Red" -ForegroundColor "Black" -Object " OFF " -NoNewline; Write-Host -Object "|"
-}
-
-Write-Host "Alignment TheTVDB:     |" -NoNewline
-if ($Alignment_TheTVDB) {
     Write-Host -BackgroundColor "Green" -ForegroundColor "Black" -Object " ON " -NoNewline; Write-Host -Object "|"
 }
 else {
@@ -550,22 +527,7 @@ if ($type -eq "series") {
             }
             $episode.url = $episode.url -replace '{&autoplay,t}', ''
 
-            if ($Alignment_TheTVDB) {
-                $episode_aligment = $alignment | Where-Object {$_.id -eq $episode.id}
-                if ($episode_aligment.count -eq 1) {
-                    if ($episode_aligment.episode_code) {
-                        $outfile = ($episode_aligment.seasondn + "/$seriestitle - " + $episode_aligment.episode_code + ".mp4")
-                    }
-                    else {
-                        Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object (' Episode is in alignment file, but does not have a alignment, falling back on s' + $episode.seasonfn + 'e' + $episode.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                        $outfile = ($episode.seasondn + "/$seriestitle - s" + $episode.seasonfn + "e" + $episode.seq_num + ".mp4")
-                    }
-                }
-                else {
-                    Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object ($episode_aligment.count + ' matches on episode: ' + $episode.id + ' (s' + $episode.seasonfn + 'e' + $episode.seq_num + '), but does not have a alignment, falling back on: s' + $episode.seasonfn + 'e' + $episode.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                }
-            }
-            elseif (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
+            if (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
                 $outfile = ($episode.seasondn + "/$seriestitle - s" + $episode.seasonfn + "e" + $episode.seq_num + ".mp4")
             }
             elseif (($episode.date) -and (-not ($LegacyFormatting))) {
@@ -634,23 +596,7 @@ if ($type -eq "series") {
                 New-Item -ItemType "Directory" -Path ($subtitle.seasondn) | Out-Null
             }
 
-            if ($Alignment_TheTVDB) {
-                $episode_aligment = $alignment | Where-Object {$_.id -eq $subtitle.id}
-                if ($episode_aligment.count -eq 1) {
-                    if ($episode_aligment.episode_code) {
-                        $outfile = ($episode_aligment.seasondn + "/$seriestitle - " + $episode_aligment.episode_code + "." + $subtitle.language + "$sub_forced.vtt")
-                    }
-                    else {
-                        Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object (' Episode is in alignment file, but does not have a alignment, falling back on s' + $subtitle.seasonfn + 'e' + $subtitle.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                        $outfile = ($subtitle.seasondn + "/$seriestitle - s" + $subtitle.seasonfn + "e" + $subtitle.seq_num + "." + $subtitle.language + "$sub_forced.vtt")
-                    }
-                }
-                else {
-                    Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object ($episode_aligment.count + ' matches on episode: ' + $subtitle.id + ' (s' + $subtitle.seasonfn + 'e' + $subtitle.seq_num + '), but does not have a alignment, falling back on: s' + $subtitle.seasonfn + 'e' + $subtitle.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                    $outfile = ($subtitle.seasondn + "/$seriestitle - s" + $subtitle.seasonfn + "e" + $subtitle.seq_num + "." + $subtitle.language + "$sub_forced.vtt")
-                }
-            }
-            elseif (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
+            if (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
                 $outfile = ($subtitle.seasondn + "/$seriestitle - s" + $subtitle.seasonfn + "e" + $subtitle.seq_num + "." + $subtitle.language + "$sub_forced.vtt")
             }
             elseif (($subtitle.date) -and (-not ($LegacyFormatting))) {
@@ -689,23 +635,7 @@ if ($type -eq "series") {
                 New-Item -ItemType "Directory" -Path ($image.seasondn) | Out-Null
             }
 
-            if ($Alignment_TheTVDB) {
-                $episode_aligment = $alignment | Where-Object {$_.id -eq $image.id}
-                if ($episode_aligment.count -eq 1) {
-                    if ($episode_aligment.episode_code) {
-                        $outfile = ($episode_aligment.seasondn + "/$seriestitle - " + $episode_aligment.episode_code + ".jpg")
-                    }
-                    else {
-                        Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object (' Episode is in alignment file, but does not have a alignment, falling back on s' + $image.seasonfn + 'e' + $image.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                        $outfile = ($image.seasondn + "/$seriestitle - s" + $image.seasonfn + "e" + $image.seq_num + ".jpg")
-                    }
-                }
-                else {
-                    Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object ($episode_aligment.count + ' matches on episode: ' + $image.id + ' (s' + $image.seasonfn + 'e' + $image.seq_num + '), but does not have a alignment, falling back on: s' + $image.seasonfn + 'e' + $image.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                    $outfile = ($image.seasondn + "/$seriestitle - s" + $image.seasonfn + "e" + $image.seq_num + ".jpg")
-                }
-            }
-            elseif (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
+            if (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
                 $outfile = ($image.seasondn + "/$seriestitle - s" + $image.seasonfn + "e" + $image.seq_num + ".jpg")
             }
             elseif (($image.date) -and (-not ($LegacyFormatting))) {
@@ -745,23 +675,7 @@ if ($type -eq "series") {
                 New-Item -ItemType "Directory" -Path ($description.seasondn) | Out-Null
             }
 
-            if ($Alignment_TheTVDB) {
-                $episode_aligment = $alignment | Where-Object {$_.id -eq $description.id}
-                if ($episode_aligment.count -eq 1) {
-                    if ($episode_aligment.episode_code) {
-                        $outfile = ($episode_aligment.seasondn + "/$seriestitle - " + $episode_aligment.episode_code + "-description.txt")
-                    }
-                    else {
-                        Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object (' Episode is in alignment file, but does not have a alignment, falling back on s' + $description.seasonfn + 'e' + $description.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                        $outfile = ($description.seasondn + "/$seriestitle - s" + $description.seasonfn + "e" + $description.seq_num + "-description.txt")
-                    }
-                }
-                else {
-                    Write-Host -BackgroundColor "Yellow" -ForegroundColor "Black" -Object ($episode_aligment.count + ' matches on episode: ' + $description.id + ' (s' + $description.seasonfn + 'e' + $description.seq_num + '), but does not have a alignment, falling back on: s' + $description.seasonfn + 'e' + $description.seq_num + ' ') -NoNewline; Write-Host -ForegroundColor "DarkGray" -Object "|"; Write-Host -Object ""
-                    $outfile = ($description.seasondn + "/$seriestitle - s" + $description.seasonfn + "e" + $description.seq_num + "-description.txt")
-                }
-            }
-            elseif (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
+            if (($seriestype -eq "sequential") -and (-not ($LegacyFormatting))) {
                 $outfile = ($description.seasondn + "/$seriestitle - s" + $description.seasonfn + "e" + $description.seq_num + "-description.txt")
             }
             elseif (($description.date) -and (-not($LegacyFormatting))) {
